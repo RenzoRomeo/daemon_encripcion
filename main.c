@@ -67,21 +67,25 @@ static void skeleton_daemon() {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    printf("Uso: daemon <directorio a supervisar>");
+  if (argc != 3) {
+    printf("Uso: daemon <directorio a supervisar> <directorio destino>");
     exit(1);
   }
 
-  const char *directory = argv[1];
+  const char *source_path= argv[1];
   // TODO: verificar que exista el directorio.
   // TODO: verificar que el directorio no esté siendo supervisado por otra
   // instancia del daemon.
+
+  const char *destiny_path = argv[2];
+  // TODO: si no existe el directorio, crearlo.
+  // TODO: si el directorio no está vacío, salir con error.
 
   skeleton_daemon();
 
   syslog(LOG_NOTICE, "First daemon started.");
 
-  watch_directory(directory);
+  watch_directory(source_path, destiny_path);
 
   syslog(LOG_NOTICE, "First daemon terminated.");
   closelog();

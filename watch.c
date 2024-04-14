@@ -3,7 +3,7 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 
-void watch_directory(const char *directory) {
+void watch_directory(const char *source_path, const char *destiny_path) {
   int instance = inotify_init();
 
   if (instance < 0) {
@@ -11,7 +11,7 @@ void watch_directory(const char *directory) {
   }
 
   int watch_fd =
-      inotify_add_watch(instance, directory, IN_CREATE | IN_MODIFY | IN_DELETE);
+      inotify_add_watch(instance, source_path, IN_CREATE | IN_MODIFY | IN_DELETE);
 
   if (watch_fd < 0) {
     // TODO: manejar error
