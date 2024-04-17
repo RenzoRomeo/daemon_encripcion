@@ -13,3 +13,7 @@ Para ello hace uso del API de inotify, para escuchar los eventos de creación, m
 ```bash
 daemon <directorio a supervisar> <directorio destino>
 ```
+
+## Características
+- Utiliza modulo de kernel de Linux "inotify".
+- Bajo uso de recursos, debido a la llamada bloqueante a "read" y uso de polling.

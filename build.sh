@@ -2,4 +2,4 @@
 
 CFLAGS="-Wall -Wextra"
 
-gcc main.c watch.c -o daemon $CFLAGS
+gcc main.c monitor.c daemonize.c -o daemon $CFLAGS
