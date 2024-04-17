@@ -17,10 +17,9 @@ void monitor_directory(const char *source_path, const char *destiny_path) {
   int instance = inotify_init();
 
   if (instance < 0) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Cannot create inotify instance: %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
   }
-
-  syslog(LOG_NOTICE, "%s", source_path);
 
   int watch_fd =
       inotify_add_watch(instance, source_path,
@@ -63,15 +62,15 @@ void monitor_directory(const char *source_path, const char *destiny_path) {
 
         if (event->len) {
           if (event->mask & IN_CREATE) {
-            syslog(LOG_NOTICE, "[%s] File created: %s.", source_path,
+            syslog(LOG_NOTICE, "[%s] File created: %s\n", source_path,
                    event->name);
           }
           if (event->mask & IN_MODIFY) {
-            syslog(LOG_NOTICE, "[%s] File modified: %s.", source_path,
+            syslog(LOG_NOTICE, "[%s] File modified: %s\n", source_path,
                    event->name);
           }
           if (event->mask & IN_DELETE) {
-            syslog(LOG_NOTICE, "[%s] File deleted: %s.", source_path,
+            syslog(LOG_NOTICE, "[%s] File deleted: %s\n", source_path,
                    event->name);
           }
         }
