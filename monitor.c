@@ -103,9 +103,12 @@ void monitor_directory(const char *source_path, const char *destination_path) {
                    event->name);
           }
           if (event->mask & IN_DELETE) {
-            syslog(LOG_NOTICE, "[%s] File deleted: %s\n", source_path,
-                   event->name);
-            // TODO: borrar archivo encriptado
+            char path[PATH_MAX] = {0};
+            strcat(path, destination_path);
+            strcat(path, "/");
+            strcat(path, event->name);
+            remove(path);
+            syslog(LOG_NOTICE, "[%s] File deleted: %s\n", path, event->name);
           }
         }
       }
