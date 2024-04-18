@@ -4,6 +4,8 @@
 #include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <syslog.h>
 
 int main(int argc, char *argv[]) {
@@ -22,9 +24,13 @@ int main(int argc, char *argv[]) {
   // TODO: verificar que el directorio no esté siendo supervisado por otra
   // instancia del daemon.
 
-  char destiny_path[PATH_MAX];
-  realpath(argv[2], destiny_path);
-  // TODO: si no existe el directorio, crearlo.
+  char destination_path[PATH_MAX];
+  realpath(argv[2], destination_path);
+  struct stat st = {0};
+  if (stat(destination_path, &st) == -1) {
+    mkdir(destination_path, 0700);
+    syslog(LOG_NOTICE, "Created destination directory: %s\n", destination_path);
+  }
   // TODO: si el directorio no está vacío, salir con error.
 
   // TODO: pensar un nombre bueno
@@ -33,7 +39,7 @@ int main(int argc, char *argv[]) {
 
   syslog(LOG_NOTICE, "%s started\n", name);
 
-  monitor_directory(source_path, destiny_path);
+  monitor_directory(source_path, destination_path);
 
   syslog(LOG_NOTICE, "%s terminated\n", name);
   closelog();
