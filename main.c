@@ -11,6 +11,22 @@
 #include <syslog.h>
 #include <unistd.h>
 
+const char *pid_path = "./.daemon_pid";
+
+static pid_t destination_to_pid(const char *destination) {
+  // TODO: buscar pid en pid_file y devolverlo
+}
+
+static void store_destination(const char *destination) {
+  FILE *fp = fopen(pid_path, "w+");
+  if (fp == NULL) {
+    // TODO: manejar error
+  }
+
+  fprintf(fp, "%s\n%d\n", destination, getpid());
+  fclose(fp);
+}
+
 static int start(const char *source_dir, const char *destination_dir) {
   char source_path[PATH_MAX];
   realpath(source_dir, source_path);
