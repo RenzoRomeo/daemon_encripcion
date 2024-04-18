@@ -13,7 +13,43 @@
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define BUF_LEN (1024 * (EVENT_SIZE + 16))
 
-void monitor_directory(const char *source_path, const char *destiny_path) {
+void encrypt_file(const char *source_path, const char *destination_path,
+                  const char *name) {
+
+  char input_path[PATH_MAX] = {0};
+  strcat(input_path, source_path);
+  strcat(input_path, "/");
+  strcat(input_path, name);
+
+  FILE *ifp = fopen(input_path, "rb");
+  if (ifp == NULL) {
+    syslog(LOG_ERR, "Failed to open file: %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  char output_path[PATH_MAX] = {0};
+  strcat(output_path, destination_path);
+  strcat(output_path, "/");
+  strcat(output_path, name);
+
+  FILE *ofp = fopen(output_path, "wb");
+  if (ofp == NULL) {
+    syslog(LOG_NOTICE, "Output path: %s\n", output_path);
+    syslog(LOG_ERR, "Failed to open file: %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
+  char byte;
+  while (fread(&byte, 1, 1, ifp) == 1) {
+    char new_byte = byte + 20;
+    fwrite(&new_byte, 1, 1, ofp);
+  }
+
+  fclose(ifp);
+  fclose(ofp);
+}
+
+void monitor_directory(const char *source_path, const char *destination_path) {
   int instance = inotify_init();
 
   if (instance < 0) {
@@ -61,17 +97,15 @@ void monitor_directory(const char *source_path, const char *destiny_path) {
         event = (const struct inotify_event *)ptr;
 
         if (event->len) {
-          if (event->mask & IN_CREATE) {
-            syslog(LOG_NOTICE, "[%s] File created: %s\n", source_path,
-                   event->name);
-          }
           if (event->mask & IN_MODIFY) {
-            syslog(LOG_NOTICE, "[%s] File modified: %s\n", source_path,
+            encrypt_file(source_path, destination_path, event->name);
+            syslog(LOG_NOTICE, "[%s] File '%s' encrypted\n", source_path,
                    event->name);
           }
           if (event->mask & IN_DELETE) {
             syslog(LOG_NOTICE, "[%s] File deleted: %s\n", source_path,
                    event->name);
+            // TODO: borrar archivo encriptado
           }
         }
       }

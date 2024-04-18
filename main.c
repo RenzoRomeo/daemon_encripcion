@@ -8,7 +8,9 @@
 
 int main(int argc, char *argv[]) {
   // TODO: permitir iniciar y detener el daemon.
-  // TODO: el daemon no debe poder estar instanciado más de una vez con el mismo directorio de destino para cualquier momento dado.
+  // TODO: el daemon no debe poder estar instanciado más de una vez con el mismo
+  // directorio de destino para cualquier momento dado.
+  // TODO: permitir directorios
 
   if (argc != 3) {
     printf("Uso: daemon <directorio a supervisar> <directorio destino>\n");
