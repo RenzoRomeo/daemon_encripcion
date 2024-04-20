@@ -164,8 +164,14 @@ static int start(const char *source_dir, const char *destination_dir,
     exit(EXIT_FAILURE);
   }
 
-  struct stat st = {0};
-  if (stat(destination_path, &st) == -1) {
+  struct stat st_source = {0};
+  if (stat(source_path, &st_source) == -1) {
+    mkdir(source_path, 0700);
+    syslog(LOG_NOTICE, "Created source directory: %s\n", source_path);
+  }
+
+  struct stat st_dest = {0};
+  if (stat(destination_path, &st_dest) == -1) {
     mkdir(destination_path, 0700);
     syslog(LOG_NOTICE, "Created destination directory: %s\n", destination_path);
   }
@@ -222,7 +228,7 @@ int main(int argc, char *argv[]) {
            "directory> <encryption_key>\n",
            argv[0]);
     printf("Stop instance: %s stop <destination directory>\n", argv[0]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_SUCCESS);
   }
 
   if (strcmp(argv[1], "start") == 0) {
