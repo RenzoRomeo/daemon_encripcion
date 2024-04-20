@@ -14,7 +14,7 @@
 #include <time.h>
 #include <unistd.h>
 
-const char *pid_path = "./.daemon_pid";
+const char *pid_path = "/tmp/.daemon_pid";
 
 static pid_t destination_to_pid(const char *destination) {
   FILE *fp = fopen(pid_path, "rt");
@@ -28,16 +28,25 @@ static pid_t destination_to_pid(const char *destination) {
 
   int found = 0;
   pid_t pid = -1;
-  while (!found && getline(&dest_line, &bytes, fp) > 0) {
+  int bytes_read;
+  while (!found && (bytes_read = getline(&dest_line, &bytes, fp)) > 0) {
+    char *pid_line = NULL;
+    dest_line[bytes_read - 1] = '\0';
     if (strcmp(dest_line, destination) == 0) {
-      char *pid_line = NULL;
-      getline(&pid_line, 0, fp);
-      pid = atoi(pid_line);
+      size_t b = 0;
+      getline(&pid_line, &b, fp);
+      // pid = atoi(pid_line);
+      sscanf(pid_line, "%d", &pid);
       found = 1;
       free(pid_line);
+    } else {
+      getline(&pid_line, 0, fp);
+      free(pid_line);
+      pid_line = NULL;
     }
     free(dest_line);
     bytes = 0;
+    bytes_read = 0;
   }
 
   fclose(fp);
@@ -46,20 +55,83 @@ static pid_t destination_to_pid(const char *destination) {
 }
 
 static void store_destination(const char *destination) {
-  FILE *fp = fopen(pid_path, "w+");
+  FILE *fp = fopen(pid_path, "a");
   if (fp == NULL) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Could not open pid file at: %s", pid_path);
+    printf("Could not open pid file at: %s", pid_path);
   }
 
   fprintf(fp, "%s\n%d\n", destination, getpid());
   fclose(fp);
 }
 
+static int delete_instance(const char *destination_path) {
+  struct stat st;
+  if (stat(pid_path, &st) == -1) {
+    // TODO: manejar error
+  }
+
+  FILE *fp = fopen(pid_path, "rb");
+
+  if (fp == NULL) {
+    // TODO: manejar error
+  }
+
+  char *buffer = malloc(st.st_size);
+
+  char *top = buffer;
+
+  char *dest_line = NULL;
+  size_t bytes = 0;
+  int bytes_read = 0;
+
+  while ((bytes_read = getline(&dest_line, &bytes, fp)) > 0) {
+    char *pid_line = NULL;
+    size_t b = 0;
+    if (strlen(dest_line) - 1 == strlen(destination_path) &&
+        strncmp(dest_line, destination_path, strlen(destination_path)) == 0) {
+      getline(&pid_line, &b, fp);
+      free(pid_line);
+      pid_line = NULL;
+      b = 0;
+    } else {
+      memcpy(top, dest_line, bytes_read);
+      top += bytes_read;
+      b = 0;
+      bytes_read = getline(&pid_line, &b, fp);
+      memcpy(top, pid_line, bytes_read);
+      top += bytes_read;
+      free(pid_line);
+      pid_line = NULL;
+      b = 0;
+    }
+    free(dest_line);
+    bytes = 0;
+    bytes_read = 0;
+  }
+
+  fclose(fp);
+
+  fp = fopen(pid_path, "wb");
+  if (fp == NULL) {
+    // TODO: manejar error
+  }
+
+  size_t size = top - buffer;
+
+  if (fwrite(buffer, 1, size, fp) != size) {
+    // TODO: manejar error
+  }
+
+  fclose(fp);
+  free(buffer);
+
+  return -1;
+}
+
 static int start(const char *source_dir, const char *destination_dir) {
   char source_path[PATH_MAX];
   realpath(source_dir, source_path);
-  // TODO: verificar que el directorio no esté siendo supervisado por otra
-  // instancia del daemon.
 
   char destination_path[PATH_MAX];
   realpath(destination_dir, destination_path);
@@ -91,11 +163,11 @@ static int start(const char *source_dir, const char *destination_dir) {
     syslog(LOG_NOTICE, "Created destination directory: %s\n", destination_path);
   }
 
-  store_destination(destination_path);
-
   // TODO: pensar un nombre bueno
   const char *name = "File Enctryptor";
   daemonize(name);
+
+  store_destination(destination_path);
 
   syslog(LOG_NOTICE,
          "Daemon instance started with source '%s' and destination: '%s'\n",
@@ -125,30 +197,17 @@ static int stop(const char *destination_dir) {
     exit(EXIT_FAILURE);
   }
 
-  // TODO: borrar entrada de esta instancia del daemon en el pid_file.
-
   kill(pid, SIGKILL);
 
+  delete_instance(destination_path);
+
   syslog(LOG_NOTICE, "Daemon instance stopped: %s\n", destination_path);
+  printf("Daemon instance stopped: %s\n", destination_path);
 
   return 0;
 }
 
 int main(int argc, char *argv[]) {
-  // TODO: el daemon no debe poder estar instanciado más de una vez con el mismo
-  // directorio de destino para cualquier momento dado.
-  //
-  // 1. el destination path identifica unívocamente a cada instancia del daemon.
-  // 2. almacenar en un archivo (pid_file) un mapa {destination_path: pid}
-  // 3. al ejecutar daemon stop <destination_path>, parsear archivo y hacer
-  // kill(pid) de la instancia que corresponda.
-  //
-  // TODO: permitir directorios
-  //
-  // TODO: usos:
-  //  daemon start <source_dir> <destination_dir> (argc == 4)
-  //  daemon stop <destination_dir> (argc == 4)
-
   if (argc < 2) {
     printf("Usage: daemon <start | stop> <...>\n");
     exit(EXIT_FAILURE);
