@@ -35,7 +35,6 @@ static pid_t destination_to_pid(const char *destination) {
     if (strcmp(dest_line, destination) == 0) {
       size_t b = 0;
       getline(&pid_line, &b, fp);
-      // pid = atoi(pid_line);
       sscanf(pid_line, "%d", &pid);
       found = 1;
       free(pid_line);
@@ -209,14 +208,17 @@ static int stop(const char *destination_dir) {
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("Usage: daemon <start | stop> <...>\n");
+    printf("Help message: daemon\n");
+    printf("Start instance: daemon start <source directory> <destination "
+           "directory>\n");
+    printf("Stop instance: daemon stop <destination directory>\n");
     exit(EXIT_FAILURE);
   }
 
   if (strcmp(argv[1], "start") == 0) {
     if (argc != 4) {
-      printf("Usage: daemon start <directorio a supervisar> <directorio "
-             "destino>\n");
+      printf(
+          "Usage: daemon start <source directory> <destination directory>\n");
       exit(EXIT_FAILURE);
     }
     const char *source_dir = argv[2];
@@ -224,12 +226,15 @@ int main(int argc, char *argv[]) {
     return start(source_dir, destination_dir);
   } else if (strcmp(argv[1], "stop") == 0) {
     if (argc != 3) {
-      printf("Usage: daemon stop <directorio destino>\n");
+      printf("Usage: daemon stop <destination directory>\n");
       exit(EXIT_FAILURE);
     }
     return stop(argv[2]);
   } else {
-    printf("Usage: daemon <start | stop> <...>\n");
+    printf("Help message: daemon\n");
+    printf("Start instance: daemon start <source directory> <destination "
+           "directory>\n");
+    printf("Stop instance: daemon stop <destination directory>\n");
     exit(EXIT_FAILURE);
   }
 }
