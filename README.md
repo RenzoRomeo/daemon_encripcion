@@ -10,10 +10,26 @@ Para ello hace uso del API de inotify, para escuchar los eventos de creación, m
 
 ## Uso
 
+### Mensaje de ayuda
+
 ```bash
-daemon <directorio a supervisar> <directorio destino>
+daemon
 ```
 
+### Iniciar instancia
+
+```bash
+daemon start <directorio a supervisar> <directorio destino>
+```
+
+### Detener instancia
+
+```bash
+daemon stop <directorio destino>
+```
+
+
 ## Características
+- Permite ejecutar más de una instancia en simultáneo, con la única restricción de que dos instancias no pueden utilizar el mismo directorio de destino al mismo tiempo.
 - Utiliza modulo de kernel de Linux "inotify".
 - Bajo uso de recursos, debido a la llamada bloqueante a "read" y uso de polling.
