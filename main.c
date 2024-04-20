@@ -233,7 +233,7 @@ int main(int argc, char *argv[]) {
 
   if (strcmp(argv[1], "start") == 0) {
     if (argc != 5) {
-      printf("Usage: %s start <source directory> <destination directory>\n",
+      printf("Usage: %s start <source directory> <destination directory> <encryption key>\n",
              argv[0]);
       exit(EXIT_FAILURE);
     }
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
   } else {
     printf("Help message: %s\n", argv[0]);
     printf("Start instance: %s start <source directory> <destination "
-           "directory>\n",
+           "directory> <encryption key>\n",
            argv[0]);
     printf("Stop instance: %s stop <destination directory>\n", argv[0]);
     exit(EXIT_FAILURE);
