@@ -67,13 +67,15 @@ static void store_destination(const char *destination) {
 static int delete_instance(const char *destination_path) {
   struct stat st;
   if (stat(pid_path, &st) == -1) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Pid was not found at: %s", pid_path);
+    printf("Pid was not found at: %s", pid_path);
   }
 
   FILE *fp = fopen(pid_path, "rb");
 
   if (fp == NULL) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Could not open pid file at: %s", pid_path);
+    printf("Could not open pid file at: %s", pid_path);
   }
 
   char *buffer = malloc(st.st_size);
@@ -113,13 +115,15 @@ static int delete_instance(const char *destination_path) {
 
   fp = fopen(pid_path, "wb");
   if (fp == NULL) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Could not open pid file at: %s", pid_path);
+    printf("Could not open pid file at: %s", pid_path);
   }
 
   size_t size = top - buffer;
 
   if (fwrite(buffer, 1, size, fp) != size) {
-    // TODO: manejar error
+    syslog(LOG_ERR, "Could write pid file at: '%s'", pid_path);
+    printf("Could write pid file at: '%s'", pid_path);
   }
 
   fclose(fp);
