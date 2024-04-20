@@ -211,6 +211,10 @@ static int stop(const char *destination_dir) {
 }
 
 int main(int argc, char *argv[]) {
+  // TODO: implementar encriptado en base a clave provista por el usuario.
+  // TODO: implementar comando 'daemon key <clave de usuario>'.
+  // TODO: implementar herramienta para desencriptar.
+  // TODO: agregar soporte para directorios anidados (?).
   if (argc < 2) {
     printf("Help message: daemon\n");
     printf("Start instance: daemon start <source directory> <destination "
