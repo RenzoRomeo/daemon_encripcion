@@ -13,6 +13,8 @@
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define BUF_LEN (1024 * (EVENT_SIZE + 16))
 
+extern char *user_key;
+
 void encrypt_file(const char *source_path, const char *destination_path,
                   const char *name) {
 
@@ -34,15 +36,16 @@ void encrypt_file(const char *source_path, const char *destination_path,
 
   FILE *ofp = fopen(output_path, "wb");
   if (ofp == NULL) {
-    syslog(LOG_NOTICE, "Output path: %s\n", output_path);
     syslog(LOG_ERR, "Failed to open file: %s\n", strerror(errno));
     exit(EXIT_FAILURE);
   }
 
   char byte;
+  int key_index = 0;
   while (fread(&byte, 1, 1, ifp) == 1) {
-    char new_byte = byte + 20;
+    char new_byte = byte ^ user_key[key_index];
     fwrite(&new_byte, 1, 1, ofp);
+    key_index = (key_index + 1) % strlen(user_key);
   }
 
   fclose(ifp);

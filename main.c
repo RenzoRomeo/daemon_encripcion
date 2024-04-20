@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 const char *pid_path = "/tmp/.daemon_pid";
+char *user_key = NULL;
 
 static pid_t destination_to_pid(const char *destination) {
   FILE *fp = fopen(pid_path, "rt");
@@ -132,12 +133,15 @@ static int delete_instance(const char *destination_path) {
   return -1;
 }
 
-static int start(const char *source_dir, const char *destination_dir) {
+static int start(const char *source_dir, const char *destination_dir,
+                 const char *encryption_key) {
   char source_path[PATH_MAX];
   realpath(source_dir, source_path);
 
   char destination_path[PATH_MAX];
   realpath(destination_dir, destination_path);
+
+  user_key = (char *)encryption_key;
 
   pid_t pid = destination_to_pid(destination_path);
 
@@ -211,38 +215,38 @@ static int stop(const char *destination_dir) {
 }
 
 int main(int argc, char *argv[]) {
-  // TODO: implementar encriptado en base a clave provista por el usuario.
-  // TODO: implementar comando 'daemon key <clave de usuario>'.
-  // TODO: implementar herramienta para desencriptar.
   // TODO: agregar soporte para directorios anidados (?).
   if (argc < 2) {
-    printf("Help message: daemon\n");
-    printf("Start instance: daemon start <source directory> <destination "
-           "directory>\n");
-    printf("Stop instance: daemon stop <destination directory>\n");
+    printf("Help message: %s\n", argv[0]);
+    printf("Start instance: %s start <source directory> <destination "
+           "directory> <encryption_key>\n",
+           argv[0]);
+    printf("Stop instance: %s stop <destination directory>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 
   if (strcmp(argv[1], "start") == 0) {
-    if (argc != 4) {
-      printf(
-          "Usage: daemon start <source directory> <destination directory>\n");
+    if (argc != 5) {
+      printf("Usage: %s start <source directory> <destination directory>\n",
+             argv[0]);
       exit(EXIT_FAILURE);
     }
     const char *source_dir = argv[2];
     const char *destination_dir = argv[3];
-    return start(source_dir, destination_dir);
+    const char *encryption_key = argv[4];
+    return start(source_dir, destination_dir, encryption_key);
   } else if (strcmp(argv[1], "stop") == 0) {
     if (argc != 3) {
-      printf("Usage: daemon stop <destination directory>\n");
+      printf("Usage: %s stop <destination directory>\n", argv[0]);
       exit(EXIT_FAILURE);
     }
     return stop(argv[2]);
   } else {
-    printf("Help message: daemon\n");
-    printf("Start instance: daemon start <source directory> <destination "
-           "directory>\n");
-    printf("Stop instance: daemon stop <destination directory>\n");
+    printf("Help message: %s\n", argv[0]);
+    printf("Start instance: %s start <source directory> <destination "
+           "directory>\n",
+           argv[0]);
+    printf("Stop instance: %s stop <destination directory>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 }
