@@ -19,7 +19,7 @@ daemon
 ### Iniciar instancia
 
 ```bash
-daemon start <directorio a supervisar> <directorio destino>
+daemon start <directorio a supervisar> <directorio destino> <clave de encriptado>
 ```
 
 ### Detener instancia
@@ -28,8 +28,16 @@ daemon start <directorio a supervisar> <directorio destino>
 daemon stop <directorio destino>
 ```
 
+### Desencriptar directorio encriptado
+
+```bash
+decrypt <directorio destino> <clave de encriptado>
+```
+
 
 ## Características
 - Permite ejecutar más de una instancia en simultáneo, con la única restricción de que dos instancias no pueden utilizar el mismo directorio de destino al mismo tiempo.
+- Archivos encriptados en base a una clave alfanumérica provista por el usuario.
+- Herramienta para desencriptar directorio encriptado, utilizando la misma clave usada para encriptar.
 - Utiliza modulo de kernel de Linux "inotify".
 - Bajo uso de recursos, debido a la llamada bloqueante a "read" y uso de polling.
